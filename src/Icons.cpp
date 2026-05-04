@@ -1,7 +1,7 @@
 #include "Icons.h"
-#include <TFT_eSPI.h>
+#include "DisplayTFT.h"
 
-extern TFT_eSPI tft;
+extern DisplayTFT tft;
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  BITMAPS 64x64 MONOCROMO

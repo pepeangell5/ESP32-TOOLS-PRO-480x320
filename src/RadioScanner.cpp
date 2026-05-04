@@ -52,7 +52,7 @@ static const uint8_t wifiToNrfMap[14] = {
 enum ScanMode { MODE_SPECTRUM = 0, MODE_WATERFALL = 1, MODE_CHANNEL = 2 };
 static ScanMode currentMode = MODE_SPECTRUM;
 
-static RF24 radio(CE_PIN, CSN_PIN);
+static RF24 radio(NRF1_CE_PIN, NRF1_CSN_PIN);
 
 // Buffers
 static int  samples[SCAN_LIMIT];        // última lectura cruda por canal NRF
@@ -241,6 +241,10 @@ static void playExit() {
 
 // Geiger ambient (solo en SPECTRUM). Se llama desde el loop principal.
 static void geigerAmbient(int intensity) {
+#if BUZZER_PIN < 0
+    (void)intensity;
+    return;
+#else
     if (!soundEnabled || intensity < 2) {
         ledcWriteTone(0, 0);
         return;
@@ -268,6 +272,7 @@ static void geigerAmbient(int intensity) {
     } else {
         ledcWriteTone(0, freq);
     }
+#endif
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -595,20 +600,26 @@ static void switchMode(ScanMode newMode) {
 // ═════════════════════════════════════════════════════════════════════════════
 void runRadioScanner() {
 
+#if BUZZER_PIN >= 0
     // Init buzzer
     ledcSetup(0, 2000, 8);
     ledcAttachPin(BUZZER_PIN, 0);
     ledcWriteTone(0, 0);
+#endif
 
     // Init SPI + NRF
+    pinMode(NRF2_CSN_PIN, OUTPUT);
+    digitalWrite(NRF2_CSN_PIN, HIGH);
+    pinMode(NRF2_CE_PIN, OUTPUT);
+    digitalWrite(NRF2_CE_PIN, LOW);
     SPI.begin(SCK_PIN, MISO_PIN, MOSI_PIN);
     if (!radio.begin()) {
         tft.fillScreen(TFT_BLACK);
         tft.drawRect(0, 0, 320, 240, TFT_WHITE);
         drawStringBig(50, 90, "NRF24 ERROR", TFT_RED, 2);
-        drawStringCustom(30, 140, "Check wiring: CE/CSN/SCK/MOSI/MISO",
+        drawStringCustom(30, 140, "NRF1 CE:27 CSN:14 SCK:18",
                          UI_ACCENT, 1);
-        drawStringCustom(30, 160, "Press OK to return...", UI_ACCENT, 1);
+        drawStringCustom(30, 160, "MISO:19 MOSI:23  OK: return", UI_ACCENT, 1);
         while (digitalRead(BTN_OK) == HIGH) delay(10);
         return;
     }
@@ -687,7 +698,6 @@ void runRadioScanner() {
 
     ledcWriteTone(0, 0);
     radio.powerDown();
-    SPI.end();
     playExit();
     ledcWriteTone(0, 0);
 }

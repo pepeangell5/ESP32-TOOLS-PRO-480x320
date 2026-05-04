@@ -1,7 +1,7 @@
 #include "AjoloteSprite.h"
-#include <TFT_eSPI.h>
+#include "DisplayTFT.h"
 
-extern TFT_eSPI tft;
+extern DisplayTFT tft;
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  BITMAP DEL AJOLOTE CON LENTES · 96x80 píxeles monochrome

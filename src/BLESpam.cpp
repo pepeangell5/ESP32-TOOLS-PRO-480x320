@@ -1,5 +1,5 @@
 #include "BLESpam.h"
-#include <TFT_eSPI.h>
+#include "DisplayTFT.h"
 #include <BLEDevice.h>
 #include <BLEAdvertising.h>
 #include <esp_bt.h>
@@ -8,7 +8,7 @@
 #include "Pins.h"
 #include "SoundUtils.h"
 
-extern TFT_eSPI tft;
+extern DisplayTFT tft;
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  TIPOS DE ATAQUE

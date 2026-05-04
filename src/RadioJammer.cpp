@@ -3,9 +3,9 @@
 #include <SPI.h>
 #include "Pins.h"
 
-extern TFT_eSPI tft;
+extern DisplayTFT tft;
 
-static RF24 radioJam(CE_PIN, CSN_PIN);
+static RF24 radioJam(NRF2_CE_PIN, NRF2_CSN_PIN);
 
 // ── Canal WiFi seleccionado (1-13) ────────────────────────────────────────────
 static int jamChannel = 6;
@@ -44,11 +44,13 @@ static const uint8_t sweep_list[] = {
 static const int sweep_total = sizeof(sweep_list);
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Inicializa el NRF24 reiniciando el bus SPI limpiamente
+// Inicializa el NRF24 usando el bus SPI compartido con la TFT
 // ─────────────────────────────────────────────────────────────────────────────
 static bool initRadio() {
-    SPI.end();
-    delay(20);
+    pinMode(NRF1_CSN_PIN, OUTPUT);
+    digitalWrite(NRF1_CSN_PIN, HIGH);
+    pinMode(NRF1_CE_PIN, OUTPUT);
+    digitalWrite(NRF1_CE_PIN, LOW);
     SPI.begin(SCK_PIN, MISO_PIN, MOSI_PIN);
     delay(20);
     if (!radioJam.begin()) return false;
@@ -377,8 +379,8 @@ void runRadioJammer() {
         tft.fillScreen(TFT_BLACK);
         drawStringCustom(20, 90,  "NRF24 ERROR", TFT_RED, 3);
         drawStringCustom(10, 130, "Revisa conexion SPI", TFT_WHITE, 2);
-        drawStringCustom(10, 155, "CE:21 CSN:32 SCK:25", UI_ACCENT, 1);
-        drawStringCustom(10, 172, "MISO:26 MOSI:33",     UI_ACCENT, 1);
+        drawStringCustom(10, 155, "NRF2 CE:17 CSN:16", UI_ACCENT, 1);
+        drawStringCustom(10, 172, "SCK:18 MISO:19 MOSI:23", UI_ACCENT, 1);
         delay(4000);
         return;
     }
@@ -415,5 +417,4 @@ void runRadioJammer() {
     }
 
     radioJam.powerDown();
-    SPI.end();
 }

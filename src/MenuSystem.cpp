@@ -207,29 +207,15 @@ static void clearCardArea() {
 //  direction = -1 → nueva entra desde arriba (navegamos UP)
 // ═══════════════════════════════════════════════════════════════════════════
 static void slideAnimation(int oldIdx, int newIdx, int direction) {
-    const int STEPS   = 6;
-    const int TRAVEL  = 120;
+    // Modo rápido: cambia tarjeta casi instantáneo.
+    // Evita lag porque drawCard() es pesado: icono + fuente pixel + escalado.
+    (void)oldIdx;
+    (void)direction;
 
-    for (int step = 1; step <= STEPS; step++) {
-        int offset = (TRAVEL * step) / STEPS;
-        int oldOff = -direction * offset;
-        int newOff =  direction * (TRAVEL - offset);
-
-        clearCardArea();
-        drawCard(oldIdx, oldOff, false);
-        drawCard(newIdx, newOff, false);
-
-        // Tapar cualquier pixel que se haya salido al footer
-        tft.fillRect(1, 215, 318, 24, TFT_BLACK);
-        tft.drawFastHLine(0, 215, 320, UI_ACCENT);
-        drawStringCustom(10, 223, "UP/DN: NAVEGAR", UI_ACCENT, 1);
-        drawStringCustom(230, 223, "OK: ENTRAR", UI_ACCENT, 1);
-
-        delay(12);
-    }
-
+    tft.startWrite();
     clearCardArea();
     drawCard(newIdx, 0, false);
+    tft.endWrite();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -327,97 +313,151 @@ int runSubMenu(const char* title, const char* items[], int count) {
     int totalItems   = count + 1;   // +1 por BACK
     int cursor       = 0;
     int scrollOffset = 0;
-    bool needsRedraw = true;
     int result       = -2;
 
     unsigned long lastPress = 0;
 
-    // Esperar que suelten OK del menú anterior
-    while (digitalRead(BTN_OK) == LOW) delay(5);
-    delay(100);
+    auto drawSubHeaderFooter = [&]() {
+        tft.fillScreen(TFT_BLACK);
+        tft.drawRect(0, 0, 320, 240, UI_MAIN);
 
-    while (result == -2) {
+        tft.fillRect(1, 1, 318, 28, TFT_BLACK);
+        drawStringBig(10, 8, title, UI_MAIN, 1);
+        tft.drawFastHLine(0, 30, 320, UI_ACCENT);
 
-        if (needsRedraw) {
-            tft.fillScreen(TFT_BLACK);
-            tft.drawRect(0, 0, 320, 240, UI_MAIN);
+        tft.drawFastHLine(0, 215, 320, UI_ACCENT);
+        tft.fillRect(1, 217, 318, 22, TFT_BLACK);
+        drawStringCustom(10, 223, "UP/DN: NAVEGAR   OK: SELECC", UI_ACCENT, 1);
+    };
 
-            // Header
-            tft.fillRect(1, 1, 318, 28, TFT_BLACK);
-            drawStringBig(10, 8, title, UI_MAIN, 1);
-            tft.drawFastHLine(0, 30, 320, UI_ACCENT);
+    auto drawSubItem = [&](int idx, int row, bool selected) {
+        if (row < 0 || row >= VISIBLE) return;
 
-            // Items
-            for (int i = 0; i < VISIBLE; i++) {
-                int idx = i + scrollOffset;
-                if (idx >= totalItems) break;
+        int y = LIST_Y_START + row * LINE_HEIGHT;
 
-                int y = LIST_Y_START + i * LINE_HEIGHT;
-                bool selected = (idx == cursor);
+        // Limpia SOLO la fila. Nada de limpiar toda la lista.
+        tft.fillRect(8, y - 4, 304, LINE_HEIGHT - 4, TFT_BLACK);
 
-                if (selected) {
-                    tft.fillRect(8, y - 4, 304, LINE_HEIGHT - 4, UI_SELECT);
-                }
-
-                uint16_t textColor = selected ? UI_BG : UI_MAIN;
-
-                if (idx == 0) {
-                    drawStringCustom(20, y + 2, "< BACK", textColor, 2);
-                } else {
-                    drawStringCustom(20, y + 2, items[idx - 1], textColor, 2);
-                }
-            }
-
-            // Scroll bar lateral
-            if (totalItems > VISIBLE) {
-                int barH = (VISIBLE * 170) / totalItems;
-                int barY = 40 + (scrollOffset * (170 - barH)) / (totalItems - VISIBLE);
-                tft.fillRect(313, barY, 4, barH, UI_ACCENT);
-            }
-
-            // Footer
-            tft.drawFastHLine(0, 215, 320, UI_ACCENT);
-            drawStringCustom(10, 223, "UP/DN: NAVEGAR   OK: SELECC",
-                             UI_ACCENT, 1);
-
-            needsRedraw = false;
+        if (selected) {
+            tft.fillRect(8, y - 4, 304, LINE_HEIGHT - 4, UI_SELECT);
         }
 
+        uint16_t textColor = selected ? UI_BG : UI_MAIN;
+
+        if (idx == 0) {
+            drawStringCustom(20, y + 2, "< BACK", textColor, 2);
+        } else {
+            drawStringCustom(20, y + 2, items[idx - 1], textColor, 2);
+        }
+    };
+
+    auto drawScrollBar = [&]() {
+        tft.fillRect(313, 40, 4, 170, TFT_BLACK);
+
+        if (totalItems > VISIBLE) {
+            int barH = (VISIBLE * 170) / totalItems;
+            int barY = 40 + (scrollOffset * (170 - barH)) / (totalItems - VISIBLE);
+            tft.fillRect(313, barY, 4, barH, UI_ACCENT);
+        }
+    };
+
+    auto drawVisibleItemsNoFlash = [&]() {
+        // Importante: NO limpiar toda la zona.
+        // Cada fila se limpia individualmente para evitar parpadeo al pasar a la 6ta.
+        for (int row = 0; row < VISIBLE; row++) {
+            int idx = scrollOffset + row;
+            if (idx < totalItems) {
+                drawSubItem(idx, row, idx == cursor);
+            } else {
+                int y = LIST_Y_START + row * LINE_HEIGHT;
+                tft.fillRect(8, y - 4, 304, LINE_HEIGHT - 4, TFT_BLACK);
+            }
+        }
+
+        drawScrollBar();
+    };
+
+    // Esperar que suelten OK del menú anterior
+    while (digitalRead(BTN_OK) == LOW) delay(5);
+    delay(80);
+
+    tft.startWrite();
+    drawSubHeaderFooter();
+    drawVisibleItemsNoFlash();
+    tft.endWrite();
+
+    while (result == -2) {
         // UP
-        if (digitalRead(BTN_UP) == LOW && (millis() - lastPress > 180)) {
+        if (digitalRead(BTN_UP) == LOW && (millis() - lastPress > 120)) {
+            int oldCursor = cursor;
+            int oldScroll = scrollOffset;
+
             cursor = (cursor - 1 + totalItems) % totalItems;
+
             if (cursor < scrollOffset) scrollOffset = cursor;
-            if (cursor >= scrollOffset + VISIBLE)
+            if (cursor >= scrollOffset + VISIBLE) {
                 scrollOffset = cursor - VISIBLE + 1;
-            beep(2200, 25);
-            needsRedraw = true;
+            }
+
+            beep(2200, 15);
+
+            tft.startWrite();
+
+            if (scrollOffset != oldScroll) {
+                drawVisibleItemsNoFlash();
+            } else {
+                drawSubItem(oldCursor, oldCursor - scrollOffset, false);
+                drawSubItem(cursor, cursor - scrollOffset, true);
+            }
+
+            tft.endWrite();
+
             lastPress = millis();
         }
 
         // DOWN
-        if (digitalRead(BTN_DOWN) == LOW && (millis() - lastPress > 180)) {
+        if (digitalRead(BTN_DOWN) == LOW && (millis() - lastPress > 120)) {
+            int oldCursor = cursor;
+            int oldScroll = scrollOffset;
+
             cursor = (cursor + 1) % totalItems;
+
             if (cursor < scrollOffset) scrollOffset = cursor;
-            if (cursor >= scrollOffset + VISIBLE)
+            if (cursor >= scrollOffset + VISIBLE) {
                 scrollOffset = cursor - VISIBLE + 1;
-            beep(2200, 25);
-            needsRedraw = true;
+            }
+
+            beep(2200, 15);
+
+            tft.startWrite();
+
+            if (scrollOffset != oldScroll) {
+                drawVisibleItemsNoFlash();
+            } else {
+                drawSubItem(oldCursor, oldCursor - scrollOffset, false);
+                drawSubItem(cursor, cursor - scrollOffset, true);
+            }
+
+            tft.endWrite();
+
             lastPress = millis();
         }
 
         // OK
-        if (digitalRead(BTN_OK) == LOW && (millis() - lastPress > 350)) {
-            beep(1500, 60);
-            if (cursor == 0) result = -1;       // BACK
+        if (digitalRead(BTN_OK) == LOW && (millis() - lastPress > 280)) {
+            beep(1500, 40);
+
+            if (cursor == 0) result = -1;
             else             result = cursor - 1;
+
+            lastPress = millis();
         }
 
-        delay(10);
+        delay(4);
     }
 
-    // Esperar liberación del OK
     while (digitalRead(BTN_OK) == LOW) delay(5);
-    delay(100);
+    delay(60);
 
     return result;
 }

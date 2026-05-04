@@ -143,6 +143,10 @@ static void playChannelBlip() {
 //     del piezo para máxima intensidad percibida.
 // ═════════════════════════════════════════════════════════════════════════════
 static void updateAmbientSound(int pps) {
+#if BUZZER_PIN < 0
+    (void)pps;
+    return;
+#else
     static uint32_t phase = 0;
     phase++;
 
@@ -185,6 +189,7 @@ static void updateAmbientSound(int pps) {
         int freq = hi ? 2400 : 900;
         ledcWriteTone(0, freq + random(-80, 80));
     }
+#endif
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -328,9 +333,11 @@ void runPacketMonitor() {
     lastLevel       = LVL_QUIET;
     memset(history, 0, sizeof(history));
 
+#if BUZZER_PIN >= 0
     ledcSetup(0, 2000, 8);
     ledcAttachPin(BUZZER_PIN, 0);
     ledcWriteTone(0, 0);
+#endif
 
     drawFrame();
     drawChannel();

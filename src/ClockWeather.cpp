@@ -1,6 +1,6 @@
 #include "ClockWeather.h"
 #include "WifiConfig.h"
-#include <TFT_eSPI.h>
+#include "DisplayTFT.h"
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
@@ -9,7 +9,7 @@
 #include "Pins.h"
 #include "SoundUtils.h"
 
-extern TFT_eSPI tft;
+extern DisplayTFT tft;
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  CONFIG

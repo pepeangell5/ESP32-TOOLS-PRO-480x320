@@ -1,5 +1,6 @@
 #include <Arduino.h>
-#include <TFT_eSPI.h>
+#include <SPI.h>
+#include "DisplayTFT.h"
 #include "PepeDraw.h"
 #include "MenuSystem.h"
 #include "Pins.h"
@@ -12,7 +13,7 @@
 //  El main.cpp solo inicializa hardware y entrega el control al menú.
 // ═══════════════════════════════════════════════════════════════════════════
 
-TFT_eSPI tft = TFT_eSPI();
+DisplayTFT tft;
 
 // ── Carga todas las preferencias desde NVS a las variables globales ──────
 static void loadPreferences() {
@@ -38,10 +39,26 @@ void setup() {
     pinMode(BTN_OK,   INPUT_PULLUP);
     pinMode(BTN_DOWN, INPUT_PULLUP);
 
-    // ── Buzzer ──────────────────────────────────────────────────────────
+    // ── SPI shared devices ──────────────────────────────────────────────
+    pinMode(TFT_CS_PIN, OUTPUT);
+    digitalWrite(TFT_CS_PIN, HIGH);
+    pinMode(NRF1_CSN_PIN, OUTPUT);
+    digitalWrite(NRF1_CSN_PIN, HIGH);
+    pinMode(NRF2_CSN_PIN, OUTPUT);
+    digitalWrite(NRF2_CSN_PIN, HIGH);
+    pinMode(NRF1_CE_PIN, OUTPUT);
+    digitalWrite(NRF1_CE_PIN, LOW);
+    pinMode(NRF2_CE_PIN, OUTPUT);
+    digitalWrite(NRF2_CE_PIN, LOW);
+
+    pinMode(TFT_LED_PIN, OUTPUT);
+    digitalWrite(TFT_LED_PIN, HIGH);
+
+#if BUZZER_PIN >= 0
     ledcSetup(0, 2000, 8);
     ledcAttachPin(BUZZER_PIN, 0);
     ledcWriteTone(0, 0);
+#endif
 
     // ── NVS: cargar configuración guardada ──────────────────────────────
     nvsBegin();
@@ -49,18 +66,13 @@ void setup() {
     bumpBootCount();
 
     // ── Reset pantalla ──────────────────────────────────────────────────
-    pinMode(4, OUTPUT);
-    digitalWrite(4, LOW);  delay(100);
-    digitalWrite(4, HIGH); delay(100);
+    pinMode(TFT_RST_PIN, OUTPUT);
+    digitalWrite(TFT_RST_PIN, LOW);  delay(100);
+    digitalWrite(TFT_RST_PIN, HIGH); delay(100);
 
+    SPI.begin(SCK_PIN, MISO_PIN, MOSI_PIN);
     tft.begin();
-    tft.setRotation(1);
-
-    tft.fillScreen(TFT_BLACK);
-
-
-    tft.begin();
-    tft.setRotation(1);
+    tft.setRotation(3);
 
     tft.fillScreen(TFT_BLACK);
 

@@ -1,7 +1,7 @@
 #include "EvilPortal.h"
 #include "EvilPortalHTML.h"
 #include "EvilPortalLogs.h"
-#include <TFT_eSPI.h>
+#include "DisplayTFT.h"
 #include <WiFi.h>
 #include <WebServer.h>
 #include <DNSServer.h>
@@ -10,7 +10,7 @@
 #include "Pins.h"
 #include "SoundUtils.h"
 
-extern TFT_eSPI tft;
+extern DisplayTFT tft;
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  CONFIGURACIÓN

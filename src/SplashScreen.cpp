@@ -1,11 +1,11 @@
 #include "SplashScreen.h"
-#include <TFT_eSPI.h>
+#include "DisplayTFT.h"
 #include "PepeDraw.h"
 #include "Pins.h"
 #include "SoundUtils.h"
 #include "NVSStore.h"
 
-extern TFT_eSPI tft;
+extern DisplayTFT tft;
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  BITMAP DEL AJOLOTE CON LENTES · 96x80 píxeles monochrome
@@ -231,25 +231,17 @@ void runSplashScreen() {
     int pressX = 310 - pressW;
     int pressY = 215;
 
-    bool blinkOn = true;
-    unsigned long lastBlink = millis();
-    unsigned long blinkInterval = 450;
-
     beep(2400, 60);
     delay(40);
     beep(3000, 80);
 
+// Texto fijo, sin parpadeo
+    tft.fillRect(pressX, pressY, pressW + 4, 8, TFT_BLACK);
+    drawStringCustom(pressX, pressY, pressText, UI_SELECT, 1);
+
     while (digitalRead(BTN_OK) == HIGH) {
-        if (millis() - lastBlink > blinkInterval) {
-            blinkOn = !blinkOn;
-            tft.fillRect(pressX, pressY, pressW + 4, 8, TFT_BLACK);
-            if (blinkOn) {
-                drawStringCustom(pressX, pressY, pressText, UI_SELECT, 1);
-            }
-            lastBlink = millis();
-        }
-        delay(20);
-    }
+    delay(20);
+}
 
     beep(2200, 50);
     delay(30);

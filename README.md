@@ -312,10 +312,10 @@ Lista de componentes para replicar este proyecto. Todo conseguible en México po
 | Componente | Modelo específico | Función |
 |:---|:---|:---|
 | **Microcontrolador** | ESP32-D (ESP32-WROOM-32, 30 pines) | Cerebro, WiFi + BT/BLE integrado |
-| **Radio 2.4GHz** | NRF24L01+ (con antena PCB integrada) | Analizador de espectro + jammer |
-| **Pantalla** | TFT LCD Shield 2.4" ILI9341 (paralela 8-bit) | Display 320x240 |
+| **Radio 2.4GHz** | 2 x NRF24L01+ | Analizador de espectro + jammer |
+| **Pantalla** | TFT SPI ILI9488 | Display 480x320 |
 | **Botones** | 3 × push buttons 12mm (arcade-style) | Navegación: UP / OK / DOWN |
-| **Buzzer** | Buzzer pasivo 5V | Audio feedback |
+| **Buzzer** | No asignado en este cableado | Audio deshabilitado por conflicto de pines |
 | **Batería** | LiPo 3.7V 1000mAh | Portabilidad |
 | **Carga batería** | Módulo TP4056 con protección | Carga por USB |
 | **Convertidor DC-DC** | Step-Up MT3608 ajustable a 5V | Alimenta ESP32 y pantalla |
@@ -331,61 +331,64 @@ Lista de componentes para replicar este proyecto. Todo conseguible en México po
 
 ## 🔌 Diagrama de conexiones
 
-### ESP32 ↔ Pantalla TFT LCD Shield 2.4" (paralela 8-bit)
+### ESP32 ↔ Pantalla TFT SPI ILI9488
 
-| Pantalla (Shield) | ESP32 (GPIO) | Función |
+| Pantalla TFT | ESP32 (GPIO) | Función |
 |:---|:---:|:---|
-| D0 | 12 | Data bus bit 0 |
-| D1 | 13 | Data bus bit 1 |
-| D2 | 14 | Data bus bit 2 |
-| D3 | 27 | Data bus bit 3 |
-| D4 | 16 | Data bus bit 4 |
-| D5 | 17 | Data bus bit 5 |
-| D6 | 18 | Data bus bit 6 |
-| D7 | 19 | Data bus bit 7 |
-| RS / DC | 2 | Command/Data select |
-| WR | 15 | Write control |
+| VCC | 3.3V | Alimentación |
+| GND | GND | Tierra |
+| SCK | 18 | SPI compartido |
+| SDI / MOSI | 23 | SPI compartido |
+| SDO / MISO | Desconectado | La TFT no usa lectura |
 | CS | 5 | Chip Select |
-| RST | 4 | Reset |
-| RD | 3.3V | Read (fijo alto) |
-| VCC | 5V (del Step-Up) | Alimentación backlight |
-| GND | GND | Tierra |
+| RESET | 4 | Reset |
+| DC / RS | 22 | Command/Data select |
+| LED | 13 | Backlight |
 
-### ESP32 ↔ NRF24L01
+### ESP32 ↔ NRF24L01 #1
 
-| NRF24L01 | ESP32 (GPIO) | Función |
+| NRF24L01 #1 | ESP32 (GPIO) | Función |
 |:---|:---:|:---|
-| CE | 21 | Chip Enable |
-| CSN | 32 | Chip Select Not |
-| SCK | 25 | SPI Clock |
-| MISO | 26 | SPI Master In Slave Out |
-| MOSI | 33 | SPI Master Out Slave In |
-| VCC | 3.3V | ⚠️ No conectar a 5V |
+| VCC | 3.3V | Con capacitor 100µF |
 | GND | GND | Tierra |
+| SCK | 18 | SPI compartido |
+| MOSI | 23 | SPI compartido |
+| MISO | 19 | SPI compartido |
+| CE | 27 | Chip Enable |
+| CSN | 14 | Chip Select Not |
+
+### ESP32 ↔ NRF24L01 #2
+
+| NRF24L01 #2 | ESP32 (GPIO) | Función |
+|:---|:---:|:---|
+| VCC | 3.3V | Con capacitor 100µF |
+| GND | GND | Tierra |
+| SCK | 18 | SPI compartido |
+| MOSI | 23 | SPI compartido |
+| MISO | 19 | SPI compartido |
+| CE | 17 | Chip Enable |
+| CSN | 16 | Chip Select Not |
 
 ### Botones
 
 | Botón | ESP32 (GPIO) | Resistencia pull-up |
 |:---|:---:|:---:|
-| UP (arriba) | 34 | ✅ Sí (externa) |
-| OK (centro) | 35 | ✅ Sí (externa) |
-| DOWN (abajo) | 23 | ❌ Usa pull-up interno |
+| UP (arriba) | 32 | Usa pull-up interno |
+| OK (centro) | 33 | Usa pull-up interno |
+| DOWN (abajo) | 25 | Usa pull-up interno |
 
-> **Nota:** GPIO 34 y 35 son solo-input en el ESP32, por eso requieren pull-up externo (10kΩ a 3.3V). El GPIO 23 usa el pull-up interno del ESP32 (`INPUT_PULLUP`).
+> **Nota:** los botones van conectados a GND y el firmware usa `INPUT_PULLUP`.
 
 ### Buzzer
 
-| Buzzer | ESP32 |
-|:---|:---:|
-| Positivo (+) | GPIO 22 |
-| Negativo (-) | GND |
+En este cableado no queda un GPIO asignado al buzzer: GPIO 22 es `DC/RS` de la TFT y GPIO 13 controla el backlight. El firmware deja el audio deshabilitado por defecto.
 
 ### Alimentación
 
 ```
-Batería 3.7V 1000mAh ──► TP4056 (carga USB) ──► Switch ──► Step-Up MT3608 (ajustado a 5V) ──► ESP32 VIN + TFT VCC
+Batería 3.7V 1000mAh ──► TP4056 (carga USB) ──► Switch ──► ESP32 VIN / regulador 3.3V ──► TFT + NRF24
                                                                                                │
-                                                                                               └──► 3.3V regulado del ESP32 ──► NRF24 VCC
+                                                                                               └──► GND común para ESP32, TFT y NRF24
 ```
 
 > ⚠️ **Importante:** el NRF24 **no tolera 5V**. Siempre alimentarlo con los 3.3V del ESP32.

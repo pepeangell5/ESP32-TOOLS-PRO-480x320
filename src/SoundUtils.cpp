@@ -4,6 +4,11 @@
 
 void beep(int freq, int duration) {
 
+#if BUZZER_PIN < 0
+    (void)freq;
+    (void)duration;
+    return;
+#else
     if (!soundEnabled) return;
 
     int duty = map(soundVolume, 1, 5, 50, 255);
@@ -12,4 +17,5 @@ void beep(int freq, int duration) {
     ledcWriteTone(0, freq);
     delay(duration);
     ledcWriteTone(0, 0);
+#endif
 }

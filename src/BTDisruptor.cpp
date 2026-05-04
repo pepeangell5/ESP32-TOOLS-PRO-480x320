@@ -1,5 +1,5 @@
 #include "BTDisruptor.h"
-#include <TFT_eSPI.h>
+#include "DisplayTFT.h"
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEScan.h>
@@ -12,7 +12,7 @@
 #include "Pins.h"
 #include "SoundUtils.h"
 
-extern TFT_eSPI tft;
+extern DisplayTFT tft;
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  CONFIGURACIÓN

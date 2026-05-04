@@ -2,7 +2,7 @@
 #define PEPE_DRAW_H
 
 #include <Arduino.h>
-#include <TFT_eSPI.h>
+#include "DisplayTFT.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  PEPE-DRAW v2  ·  Librería de renderizado de texto bitmap
@@ -20,7 +20,7 @@
 #define UI_CURSOR  TFT_WHITE
 #define UI_SELECT  0xFA20   // Naranja-rojo fuerte (highlight al seleccionar)
 
-extern TFT_eSPI tft;
+extern DisplayTFT tft;
 
 // ── Tipos de fuente ───────────────────────────────────────────────────────
 enum FontType {

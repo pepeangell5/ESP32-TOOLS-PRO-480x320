@@ -1,5 +1,5 @@
 #include "About.h"
-#include <TFT_eSPI.h>
+#include "DisplayTFT.h"
 #include "PepeDraw.h"
 #include "Pins.h"
 #include "SoundUtils.h"
@@ -7,7 +7,7 @@
 #include "SystemInfo.h"
 #include "AjoloteSprite.h"
 
-extern TFT_eSPI tft;
+extern DisplayTFT tft;
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  CONFIG

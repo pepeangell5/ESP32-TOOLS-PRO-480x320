@@ -1,5 +1,5 @@
 #include "SystemInfo.h"
-#include <TFT_eSPI.h>
+#include "DisplayTFT.h"
 #include <WiFi.h>
 #include <esp_system.h>
 #include <esp_chip_info.h>
@@ -9,7 +9,7 @@
 #include "SoundUtils.h"
 #include "NVSStore.h"
 
-extern TFT_eSPI tft;
+extern DisplayTFT tft;
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  LECTURA DE TEMPERATURA INTERNA

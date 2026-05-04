@@ -334,10 +334,12 @@ static void drawList(const NetInfo* nets, int n, int cursor, int scrollOffset) {
 // ═════════════════════════════════════════════════════════════════════════════
 void runWifiScan() {
 
+#if BUZZER_PIN >= 0
     // Init buzzer
     ledcSetup(0, 2000, 8);
     ledcAttachPin(BUZZER_PIN, 0);
     ledcWriteTone(0, 0);
+#endif
 
     WiFi.mode(WIFI_STA);
     WiFi.disconnect();

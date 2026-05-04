@@ -1,12 +1,12 @@
 #include "BeaconSpam.h"
-#include <TFT_eSPI.h>
+#include "DisplayTFT.h"
 #include <WiFi.h>
 #include "esp_wifi.h"
 #include "PepeDraw.h"
 #include "Pins.h"
 #include "SoundUtils.h"
 
-extern TFT_eSPI tft;
+extern DisplayTFT tft;
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  MODO 1: MEXIPICANTE 🌶️ (tu lista, la estrella del show)

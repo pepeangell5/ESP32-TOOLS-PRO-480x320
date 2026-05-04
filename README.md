@@ -15,7 +15,7 @@
 ![Framework: Arduino](https://img.shields.io/badge/framework-Arduino-00979D.svg)
 ![Built with: PlatformIO](https://img.shields.io/badge/built%20with-PlatformIO-orange.svg)
 ![Version: 2.0](https://img.shields.io/badge/version-2.0-brightgreen.svg)
-[![Web Installer](https://img.shields.io/badge/⚡_FLASH_FROM_BROWSER-fa4500?style=for-the-badge)](https://pepeangell5.github.io/ESP32-TOOLS/)
+[![Web Installer](https://img.shields.io/badge/⚡_FLASH_FROM_BROWSER-fa4500?style=for-the-badge)](https://pepeangell5.github.io/ESP32-TOOLS-PRO-480x320/)
 </div>
 
 ---
@@ -403,7 +403,7 @@ Hay dos formas de instalar ESP32-TOOLS en tu hardware:
 
 Si solo quieres usar el firmware sin compilarlo, puedes flashearlo directamente desde tu navegador en menos de 1 minuto. **No necesitas instalar nada.**
 
-🔗 **[https://pepeangell5.github.io/ESP32-TOOLS/](https://pepeangell5.github.io/ESP32-TOOLS/)**
+🔗 **[https://pepeangell5.github.io/ESP32-TOOLS/](https://pepeangell5.github.io/ESP32-TOOLS-PRO-480x320/)**
 
 **Pasos:**
 1. Abre el link en **Chrome, Edge u Opera** (en computadora — no funciona en móvil ni Firefox/Safari)

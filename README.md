@@ -403,7 +403,7 @@ Hay dos formas de instalar ESP32-TOOLS en tu hardware:
 
 Si solo quieres usar el firmware sin compilarlo, puedes flashearlo directamente desde tu navegador en menos de 1 minuto. **No necesitas instalar nada.**
 
-🔗 **[https://pepeangell5.github.io/ESP32-TOOLS/](https://pepeangell5.github.io/ESP32-TOOLS-PRO-480x320/)**
+🔗 **[https://pepeangell5.github.io/ESP32-TOOLS-PRO-480x320/](https://pepeangell5.github.io/ESP32-TOOLS-PRO-480x320/)**
 
 **Pasos:**
 1. Abre el link en **Chrome, Edge u Opera** (en computadora — no funciona en móvil ni Firefox/Safari)
